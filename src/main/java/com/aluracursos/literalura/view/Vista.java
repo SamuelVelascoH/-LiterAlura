@@ -1,75 +1,100 @@
 package com.aluracursos.literalura.view;
 
+import com.aluracursos.literalura.controller.Controller;
 import com.aluracursos.literalura.model.Autor;
 import com.aluracursos.literalura.model.Libro;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 @Component
 public class Vista {
-     public void printBookDetails(Libro libro){
-        System.out.println("----------LIBRO----------");
-        System.out.println("Titulo: " + libro.getTitulo());
-         libro.getAutores().stream()
-                 .map(Autor::getNombre)
-                 .forEach(nombre -> System.out.println("Autor:  " + nombre));
-         libro.getIdiomas().stream()
-                    .forEach(idioma -> System.out.println("Idiomas:  " + idioma));
-         System.out.println("Descargas: " + libro.getDescargas());
-         System.out.println("-------------------------");
-    }
-
-    public void printBooksRegistred(List<Libro> libros) {
-        System.out.println("----------LIBROS REGISTRADOS----------");
-        for (Libro libro : libros) {
-            System.out.println("Título: " + libro.getTitulo());
-            // Imprimir los nombres de los autores
-            libro.getAutores().stream()
-                    .map(Autor::getNombre)
-                    .forEach(nombre -> System.out.println("Autor:  " + nombre));
-            System.out.println("Idiomas: " + String.join(", ", libro.getIdiomas()));
-            System.out.println("Descargas: " + libro.getDescargas());
-            System.out.println("-------------------------");
+    @Autowired
+    Controller controller;
+    private Scanner teclado = new Scanner(System.in);
+    public void searchBookByTitle() {
+        System.out.println(MessagesLibro.MessageBookRequest[1]);
+        var tituloDeLibro = teclado.nextLine();
+        Libro libro = controller.getDataBooks(tituloDeLibro);
+        if (libro != null) {
+            MessagesLibro.printBookDetails(libro);
         }
     }
-
+    public void viewListBooksRegistred() {
+        List<Libro>  libros = controller.listBooksRegistred();
+        System.out.println(MessagesLibro.outMessageBook[4]);
+        MessagesLibro.printBooksRegistred(libros);
+    }
     public void printAuthorsRegistred(List<Autor> autores) {
-        System.out.println("----------AUTORES REGISTRADOS----------:");
+        System.out.println(MessagesAutor.outMessageAutor[0]);
         for (Autor autor : autores) {
-            System.out.println("Nombre: " + autor.getNombre());
-            System.out.println("Año de nacimiento: " + autor.getAñoDeNacimiento());
-            System.out.println("Año de fallecimiento: " + autor.getAñoDeFallecimiento());
-            // Crea una lista para almacenar los títulos de los libros
-            List<String> titulosDeLibros = new ArrayList<>();
-            // Agrega los títulos de los libros a la lista
+            MessagesAutor.printAutor(autor);
+            List<String> writtenBooks = new ArrayList<>();
             for (Libro libro : autor.getLibros()) {
-                titulosDeLibros.add(libro.getTitulo());
+                writtenBooks.add(libro.getTitulo());
             }
-            // Imprime la lista de títulos de libros
-            System.out.println("Libros escritos: " + titulosDeLibros);
-
-            System.out.println("-------------------------");
+            System.out.println(MessagesAutor.outMessageAutor[1] + writtenBooks);
+            System.out.println(MessagesAutor.outMessageAutor[4]);
         }
+    }
+    public void viewListAuthorsRegistred() {
+        List<Autor> autores = controller.listAuthorsRegistred();
+        this.printAuthorsRegistred(autores);
     }
     public void ShowMenuLanguage(){
-        System.out.println("Ingrese el idioma");
-        System.out.println(
-                "es - Español \n" +
-                        "en - Inglés \n" +
-                        "fr - Francés \n" +
-                        "pt - Portugués \n"
-        );
+        System.out.println(MessagesLibro.MessageBookRequest[0]);
+        System.out.println( MessagesLibro.menuLanguages );
     }
-    public String paintMenu(){
-        var menu = """
-                    1 - Buscar libros por titulo
-                    2 - Listar libros registrados
-                    3 - Listar autores registrados
-                    4 - Listar autores vivos en determinado año
-                    5 - Listar libros por idioma
-                    0 - Salir""";
-        return menu ;
+    public void viewListByLanguage() {
+        this.ShowMenuLanguage();
+        Scanner enter = new Scanner(System.in);
+        var idioma = enter.nextLine();
+        List<Libro> libros = controller.listBooksByLanguage(idioma.toLowerCase());
+        if (libros.isEmpty()) {
+            System.out.println(MessagesLibro.outMessageBook[5] + idioma + "\n");
+        }else {
+            System.out.println(MessagesLibro.outMessageBook[7]+idioma + "\n");
+            MessagesLibro.printBooksRegistred(libros);
+        }
+    }
+    public void paintMenu(){
+        System.out.println(MessagesLibro.menu);
+    }
+    public void viewSearchAuthorAliveInYear() {
+        System.out.println(MessagesAutor.messageAutorRequest[0]);
+        var year = teclado.nextInt();
+        List<Autor> autoresVivos = controller.listAuthorsAliveInYear(year);
+        if (autoresVivos.isEmpty()) {
+            System.out.println(MessagesAutor.outMessageAutor[3] + year + "\n");
+        } else {
+            System.out.println(MessagesAutor.outMessageAutor[5]+MessagesAutor.outMessageAutor[2] + year + MessagesAutor.outMessageAutor[5]);
+            this.printAuthorsRegistred(autoresVivos);
+        }
+    }
+    public void executeOption(int opcion){
+        switch (opcion) {
+            case 1:
+                this.searchBookByTitle();
+                break;
+            case 2:
+                this.viewListBooksRegistred();
+                break;
+            case  3:
+                this.viewListAuthorsRegistred();
+                break;
+            case 4 :
+                this.viewSearchAuthorAliveInYear();
+                break;
+            case 5:
+                this.viewListByLanguage();
+                break;
+            case 0:
+                System.out.println("Cerrando la aplicación...");
+                break;
+            default:
+                System.out.println("Opción inválida");
+        }
     }
 }

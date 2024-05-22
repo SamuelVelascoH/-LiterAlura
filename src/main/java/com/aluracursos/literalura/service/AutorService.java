@@ -38,7 +38,6 @@ public class AutorService {
 
         DatosAutor datosAutor = new DatosAutor(nombre, añoDeNacimiento, añoDeFallecimiento);
         Autor autor = new Autor(datosAutor);
-
         // Si el autor no existe, guardarlo en la base de datos
         Optional<Autor> existingAutor = autorRepository.findByNombreContainsIgnoreCase(nombre);
         if (existingAutor.isEmpty()){

@@ -4,7 +4,7 @@ import com.aluracursos.literalura.model.Autor;
 import com.aluracursos.literalura.dto.DatosLibro;
 import com.aluracursos.literalura.model.Libro;
 import com.aluracursos.literalura.repository.LibroRepository;
-import com.aluracursos.literalura.view.Vista;
+import com.aluracursos.literalura.view.MessagesLibro;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -22,10 +22,9 @@ public class LibroService {
         this.autorService = autorService;
     }
 
-    public Optional<Libro> processBookData(String tituloDeLibro) {
+    private Optional<Libro> processBookData(String tituloDeLibro) {
         //Deserializar el JSON
         Map<String, Object> bookData = ApiServices.getJsonData(URL_BASE, tituloDeLibro);
-
         // Asignar los datos del JSON a la entidad DatosLibro
         List<Map<String, Object>> results = (List<Map<String, Object>>) bookData.get("results");
         if (!results.isEmpty()) {
@@ -33,9 +32,22 @@ public class LibroService {
             Libro libro = processSingleBookData(result);
             return Optional.ofNullable(libro);
         } else {
-            System.out.println("\n"+"----------LIBRO NO ENCONTRADO----------"+"\n");
+            System.out.println(MessagesLibro.outMessageBook[0]);
             return Optional.empty();
         }
+    }
+
+    /**
+     * Agiliza la respuesta buscando primero en la base de datos local, para evitar perder tiempo inesesario
+     * consultando primero a la api, sin saber si ya existe
+     */
+    public Optional<Libro> recoverBook(String titulo){
+        Optional<Libro> existingLibro = libroRepository.findByTituloContainsIgnoreCase(titulo.toLowerCase());
+        if(existingLibro.isEmpty()){
+            return processBookData(titulo);
+        }
+        System.out.println(MessagesLibro.outMessageBook[1]);
+        return existingLibro;
     }
 
     private Libro processSingleBookData(Map<String, Object> bookData) {
@@ -46,21 +58,13 @@ public class LibroService {
 
         DatosLibro datosLibro = new DatosLibro(titulo, autores, idiomas, descargas);
         Libro libro = new Libro(datosLibro);
-
         // Guardar el libro en la base de datos
-        saveBookInDatabase(libro, titulo);
+        saveBookInDatabase(libro);
         return libro;
     }
-    private Optional<Libro> saveBookInDatabase(Libro libro, String titulo) {
-        Optional<Libro> existingLibro = libroRepository.findByTituloContainsIgnoreCase(titulo);
-        if (existingLibro.isEmpty()) {
-            libroRepository.save(libro);
-            System.out.println("Libro guardado en la base de datos...");
-            System.out.println("----------XD----------");
-        } else {
-            System.out.println("...\n"+"El libro ya existe en la base de datos");
-            System.out.println("----------XD----------");
-        }
+    private Optional<Libro> saveBookInDatabase(Libro libro) {
+        libroRepository.save(libro);
+        System.out.println(MessagesLibro.outMessageBook[2]);
         return Optional.ofNullable(libro);
     }
     public List<Libro> getBooksByLanguage(String idioma) {
