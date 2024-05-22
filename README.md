@@ -8,6 +8,6 @@ Desarrollo de un Catálogo de Libros que ofrece interacción textual (vía conso
 proporcionando al menos 5 opciones de interacción. Los libros se buscarán a través de una API específica.
 </h4>
 ##algunas-funciones 
-*[Consumo de la API: https://gutendex.com/](Consumo-de-la-API:-https://gutendex.com/)
+*[Consumo de la API: https://gutendex.com/](#Consumo-de-la-API:-https://gutendex.com/)
 *[Análisis de la Respuesta JSON](Análisis de la Respuesta JSON)
 *[Inserción y consulta en la base de datos](Inserción y consulta en la base de datos)
